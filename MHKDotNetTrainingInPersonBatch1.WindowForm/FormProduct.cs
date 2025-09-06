@@ -34,28 +34,28 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
 
             if (string.IsNullOrEmpty(textBox_ProductCode.Text.Trim()))
             {
-                MessageBox.Show("Product Code is Required", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Product Code is Required", "Empty Text Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 textBox_ProductCode.Focus();
                 return false;
             }
             if (string.IsNullOrEmpty(textBox_ProductName.Text.Trim()))
             {
 
-                MessageBox.Show("Product Name is Required", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Product Name is Required", "Empty Text Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 textBox_ProductName.Focus();
                 return false;
             }
             if (string.IsNullOrEmpty(textBox_Price.Text.Trim()))
             {
 
-                MessageBox.Show("Price is Required", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Price is Required", "Empty Text Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 textBox_Price.Focus();
                 return false;
             }
             if (string.IsNullOrEmpty(textBox_Quantity.Text.Trim()))
             {
 
-                MessageBox.Show("Quantity is Required", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Quantity is Required", "Empty Text Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 textBox_Quantity.Focus();
                 return false;
             }
@@ -102,9 +102,9 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
                 db.Open();
                 var results = db.Execute(query, productDTO);
                 string message = results > 0 ? "Saved Successfully" : "Saved Failed";
-                MessageBox.Show(message);
+                string corOrincor = results > 0 ? "correct save" : "incorrect save";
+                MessageBox.Show(message, corOrincor, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ClearControls();
-                db.Close();
             }
         }
 
