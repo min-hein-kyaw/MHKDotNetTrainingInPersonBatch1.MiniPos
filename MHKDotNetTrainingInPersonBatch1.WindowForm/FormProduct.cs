@@ -14,9 +14,19 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
 {
     public partial class FormProduct : Form
     {
+        public string? productId;
+        SqlConnectionStringBuilder sqlConnectionStringBuilder = new SqlConnectionStringBuilder()
+        {
+            DataSource = ".",
+            InitialCatalog = "MHKDotNetTrainingInPersonBatch1POS",
+            UserID = "sa",
+            Password = "sasa@123",
+            TrustServerCertificate = true
+        };
         public FormProduct()
         {
             InitializeComponent();
+            btnUpdate.Visible = false;
         }
 
         public void button1_Click(object sender, EventArgs e)
@@ -27,7 +37,8 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
                 return;
             }
             Insert();
-            
+            ClearControls();
+
         }
         private bool DataValidation()
         {
@@ -63,14 +74,7 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
         }
         private void Insert()
         {
-            SqlConnectionStringBuilder sqlConnectionStringBuilder = new SqlConnectionStringBuilder()
-            {
-                DataSource = ".",
-                InitialCatalog = "MHKDotNetTrainingInPersonBatch1POS",
-                UserID = "sa",
-                Password = "sasa@123",
-                TrustServerCertificate = true
-            };
+
             using (IDbConnection db = new SqlConnection(sqlConnectionStringBuilder.ConnectionString))
             {
                 string id = Guid.NewGuid().ToString();
@@ -104,7 +108,7 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
                 string message = results > 0 ? "Saved Successfully" : "Saved Failed";
                 string corOrincor = results > 0 ? "correct save" : "incorrect save";
                 MessageBox.Show(message, corOrincor, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                ClearControls();
+                dgvTable.DataSource = db.Query("select * from Table_Product where DeleteFlag = 0").ToList();
             }
         }
 
@@ -114,6 +118,99 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
             textBox_ProductName.Clear();
             textBox_Price.Clear();
             textBox_Quantity.Clear();
+            btnUpdate.Visible = false;
         }
+
+        
+
+        private void FormProduct_Load(object sender, EventArgs e)
+        {
+            using (IDbConnection db = new SqlConnection(sqlConnectionStringBuilder.ConnectionString))
+            {
+                db.Open();
+                dgvTable.DataSource = db.Query("select * from Table_Product where DeleteFlag = 0").ToList();
+            }
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            ClearControls();
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.ColumnIndex == 0)
+            {
+                IDbConnection db = new SqlConnection(sqlConnectionStringBuilder.ConnectionString);
+                btnUpdate.Visible = true;
+                DataGridViewRow currentRow = dgvTable.Rows[e.RowIndex];
+                productId = currentRow.Cells["productIdDataGridViewTextBoxColumn"].Value.ToString();
+                string query = "select * from Table_Product where ProductID = @ProductId";
+                ProductDTO? item = db.QueryFirstOrDefault<ProductDTO>(query, new { ProductId = productId });
+                if(item is null)
+                {
+                    MessageBox.Show("Product not found");
+                    return;
+                }
+                textBox_ProductCode.Text = item.ProductCode;
+                textBox_ProductName.Text = item.ProductName;
+                textBox_Price.Text = item.Price.ToString();
+                textBox_Quantity.Text = item.Quantity.ToString();
+            }
+            else if (e.RowIndex >= 0 && e.ColumnIndex == 1) {
+                DialogResult answer =   MessageBox.Show("Are you sure to delete?","Delete Confirmation",MessageBoxButtons.OKCancel,MessageBoxIcon.Question);
+                if(answer == DialogResult.Cancel)
+                {
+                    return;
+                }
+                DataGridViewRow currentRow = dgvTable.Rows[e.RowIndex];
+                productId = currentRow.Cells["productIdDataGridViewTextBoxColumn"].Value.ToString();
+                IDbConnection db = new SqlConnection(sqlConnectionStringBuilder.ConnectionString);
+                db.Open();
+                ProductDTO product = new ProductDTO()
+                {
+                    ProductId = productId,
+                    DeleteFlag = true,
+                };
+                string query = @"UPDATE [dbo].[Table_Product]
+    SET
+      DeleteFlag = @DeleteFlag
+    WHERE ProductID = @ProductId;";
+                int result = db.Execute(query, product);
+                MessageBox.Show("Delete Complete","complete Delete",MessageBoxButtons.OK, MessageBoxIcon.Information);
+                dgvTable.DataSource = db.Query("select * from Table_Product where DeleteFlag = 0").ToList();
+
+            }
+        }
+
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(productId))
+            {
+                MessageBox.Show("Please Select a product to update");
+                return;
+            }
+            IDbConnection db = new SqlConnection(sqlConnectionStringBuilder.ConnectionString);
+            ProductDTO productDTO = new ProductDTO()
+            {
+                ProductId = productId,
+                ProductCode = textBox_ProductCode.Text,
+                ProductName = textBox_ProductName.Text,
+                Price = Convert.ToDecimal(textBox_Price.Text),
+                Quantity = Convert.ToInt32(textBox_Quantity.Text)
+            };
+            string query = @"UPDATE [dbo].[Table_Product]
+    SET
+      [ProductCode] = @ProductCode
+      ,[ProductName] = @ProductName
+      ,[Price] = @Price
+      ,[Quantity] = @Quantity
+    WHERE ProductID = @ProductId;";
+            var result = db.Execute(query, productDTO);
+            MessageBox.Show("Updating Complete");
+            dgvTable.DataSource = db.Query("select * from Table_Product where DeleteFlag = 0").ToList();
+            btnUpdate.Visible = false;
+        }
+
     }
 }

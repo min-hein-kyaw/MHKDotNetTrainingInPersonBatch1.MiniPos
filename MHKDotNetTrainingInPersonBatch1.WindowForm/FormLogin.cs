@@ -12,7 +12,7 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
         private void btn_login_Click(object sender, EventArgs e)
         {
             if (textBox_username.Text != "admin" || textBox_password.Text != "admin12345") {
-                MessageBox.Show("Wrong Username or Password");
+                MessageBox.Show("Wrong Username or Password","Invalid Login", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             this.Hide();

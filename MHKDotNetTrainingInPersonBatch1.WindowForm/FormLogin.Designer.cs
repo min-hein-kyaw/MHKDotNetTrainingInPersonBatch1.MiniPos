@@ -92,6 +92,7 @@
             Controls.Add(label2);
             Controls.Add(label1);
             Name = "FormLogin";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Form1";
             ResumeLayout(false);
             PerformLayout();
