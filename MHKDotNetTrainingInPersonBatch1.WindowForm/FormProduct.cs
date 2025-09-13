@@ -104,7 +104,7 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
                 string message = results > 0 ? "Saved Successfully" : "Saved Failed";
                 string corOrincor = results > 0 ? "correct save" : "incorrect save";
                 MessageBox.Show(message, corOrincor, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                dgvTable.DataSource = db.Query("select * from Table_Product where DeleteFlag = 0").ToList();
+                
             }
         }
 
@@ -142,13 +142,16 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
             IDbConnection db = new SqlConnection(sqlConnectionStringBuilder.ConnectionString);
             btnUpdate.Visible = true;
             productId = dgvTable.Rows[e.RowIndex].Cells["productIdDataGridViewTextBoxColumn"].Value.ToString();
+
             string query = "select * from Table_Product where ProductID = @ProductId";
             ProductDTO? item = db.QueryFirstOrDefault<ProductDTO>(query, new { ProductId = productId });
-            if (item is null)
+
+            if (item == null)
             {
-                MessageBox.Show("Product not found");
+                MessageBox.Show("Product not found","not found",MessageBoxButtons.OK,MessageBoxIcon.Error);
                 return;
             }
+
             textBox_ProductCode.Text = item.ProductCode.Trim();
             textBox_ProductName.Text = item.ProductName.Trim();
             textBox_Price.Text = item.Price.ToString().Trim();
@@ -160,6 +163,7 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
             if (e.RowIndex >= 0 && e.ColumnIndex == 0)
             {
                 editDataLoad(e);
+                Bind();
             }
             else if (e.RowIndex >= 0 && e.ColumnIndex == 1)
             {
@@ -194,7 +198,7 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
 
         private void btnUpdate_Click(object sender, EventArgs e)
         {
-            UpdateData();                   
+            UpdateData();             
             Bind();
         }
 
@@ -223,7 +227,6 @@ namespace MHKDotNetTrainingInPersonBatch1.WindowForm
                 WHERE ProductID = @ProductId;";
             var result = db.Execute(query, productDTO);
             MessageBox.Show("Updating Complete");
-            dgvTable.DataSource = db.Query("select * from Table_Product where DeleteFlag = 0").ToList();
             btnUpdate.Visible = false;
         }
     }
